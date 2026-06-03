@@ -22,6 +22,7 @@ wfLoadExtension( 'MoeImgTag' );
   class="my-class"
   style="width: 100%; height: auto;"
   loading="lazy"
+  referrerpolicy="no-referrer"
   title="My Image"
   alt="My Image"
   width="400"
@@ -51,6 +52,7 @@ wfLoadExtension( 'MoeImgTag' );
   | class = my-class {{{className|}}}
   | style = width: 100%; height: auto; {{{style|}}}
   | loading = {{{loading|lazy}}}
+  | referrerpolicy = {{{referrerpolicy|}}}
   | title = {{{title|}}}
   | alt = {{{alt|}}}
   | width = {{{width|}}}
@@ -88,6 +90,18 @@ $wgMoeImgTagWhitelist = [
     // ...
 ];
 ```
+
+### 默认空 Referer 域名
+
+```php
+$wgMoeImgTagNoReferrerDomains = [
+    'hdslb.com',
+];
+```
+
+若图片的 `src` 命中这些域名，且调用方没有显式设置 `referrerpolicy`，扩展会自动输出 `referrerpolicy="no-referrer"`。
+
+域名会按后缀匹配，因此 `hdslb.com` 同时匹配 `hdslb.com` 和 `i0.hdslb.com`，但不会匹配 `evil-hdslb.com`。
 
 ### 修复自闭合标签 (实验性)
 

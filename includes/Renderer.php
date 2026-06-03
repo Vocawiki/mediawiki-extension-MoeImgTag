@@ -12,6 +12,18 @@ use MediaWiki\Parser\Sanitizer;
 class Renderer {
   const IMG_SELF_CLOSING_MARK = 'data-img-unsafe-self-closing';
 
+  private const REFERRER_POLICIES = [
+    '',
+    'no-referrer',
+    'no-referrer-when-downgrade',
+    'same-origin',
+    'origin',
+    'strict-origin',
+    'origin-when-cross-origin',
+    'strict-origin-when-cross-origin',
+    'unsafe-url',
+  ];
+
   public static function createImgElement(array $attribs = []) {
     $src = $attribs['src'] ?? '';
 
@@ -50,7 +62,15 @@ class Renderer {
       'style' => $attribs['style'] ?? '',
       'class' => $attribs['class'] ?? '',
     ]);
+    self::normalizeReferrerPolicyAttribute($attribs);
+    if (!array_key_exists('referrerpolicy', $attribs) && self::shouldUseNoReferrerByDefault($src)) {
+      $attribs['referrerpolicy'] = 'no-referrer';
+    }
+    $referrerPolicy = self::sanitizeReferrerPolicy($attribs);
     $attribs = Sanitizer::validateTagAttributes($attribs, 'img');
+    if ($referrerPolicy !== null) {
+      $attribs['referrerpolicy'] = $referrerPolicy;
+    }
 
     // 如果没有设置 loading 属性，则默认为 lazy
     if (isset($attribs['loading']) && $attribs['loading'] === 'eager') {
@@ -130,6 +150,65 @@ class Renderer {
       }
     }
     return $results;
+  }
+
+  private static function normalizeReferrerPolicyAttribute(array &$attribs): void {
+    if (array_key_exists('referrerpolicy', $attribs)) {
+      return;
+    }
+
+    foreach ($attribs as $attribute => $value) {
+      if (strtolower((string)$attribute) === 'referrerpolicy') {
+        unset($attribs[$attribute]);
+        $attribs['referrerpolicy'] = $value;
+        return;
+      }
+    }
+  }
+
+  private static function sanitizeReferrerPolicy(array $attribs): ?string {
+    if (!array_key_exists('referrerpolicy', $attribs)) {
+      return null;
+    }
+
+    $policy = strtolower(trim((string)$attribs['referrerpolicy']));
+    if (!in_array($policy, self::REFERRER_POLICIES, true)) {
+      return null;
+    }
+
+    return $policy;
+  }
+
+  private static function shouldUseNoReferrerByDefault(string $src): bool {
+    $host = parse_url($src, PHP_URL_HOST);
+    if ($host === null || $host === false || $host === '') {
+      return false;
+    }
+
+    $conf = MediaWikiServices::getInstance()->getMainConfig();
+    foreach ((array)$conf->get('MoeImgTagNoReferrerDomains') as $domain) {
+      if (self::hostMatchesDomain($host, (string)$domain)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private static function hostMatchesDomain(string $host, string $domain): bool {
+    $host = strtolower(rtrim($host, '.'));
+    $domain = trim(strtolower($domain));
+
+    if (strpos($domain, '://') !== false) {
+      $domain = parse_url($domain, PHP_URL_HOST) ?: '';
+    }
+
+    $domain = preg_replace('/^\*\./', '', rtrim($domain, '.'));
+    if ($host === '' || $domain === '') {
+      return false;
+    }
+
+    return $host === $domain || str_ends_with($host, '.' . $domain);
   }
 
   public static function validateSrc($src = '') {

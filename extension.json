@@ -37,6 +37,12 @@
       "descriptionmsg": "config-desc-addimgtagblacklist",
       "value": []
     },
+    "MoeImgTagNoReferrerDomains": {
+      "descriptionmsg": "config-desc-no-referrer-domains",
+      "value": [
+        "hdslb.com"
+      ]
+    },
     "MoeImgTagFixSelfClosing": {
       "descriptionmsg": "config-desc-enable-self-closing",
       "value": false

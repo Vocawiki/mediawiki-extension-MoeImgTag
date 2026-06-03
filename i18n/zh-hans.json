@@ -4,5 +4,6 @@
   "imgtag-empty-src": "未设置 <code>src</code> 属性。",
   "imgtag-invalid-src": "无效的 <code>src</code> 属性",
   "imgtag-not-whitelisted-src": "该 <code>src</code> 属性未被列入白名单。",
-  "imgtag-blacklisted-src": "该 <code>src</code> 属性被列入黑名单。"
+  "imgtag-blacklisted-src": "该 <code>src</code> 属性被列入黑名单。",
+  "config-desc-no-referrer-domains": "默认对图片使用 <code>referrerpolicy=\"no-referrer\"</code> 的域名列表。"
 }
