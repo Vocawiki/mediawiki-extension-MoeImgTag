@@ -57,6 +57,9 @@ class Renderer {
       ];
     }
 
+    $loading = isset($attribs['loading']) && is_string($attribs['loading'])
+      ? strtolower(trim($attribs['loading']))
+      : '';
     $attribs = array_merge($attribs, [
       'src' => $src,
       'style' => $attribs['style'] ?? '',
@@ -73,7 +76,7 @@ class Renderer {
     }
 
     // 如果没有设置 loading 属性，则默认为 lazy
-    if (isset($attribs['loading']) && $attribs['loading'] === 'eager') {
+    if ($loading === 'eager') {
       $attribs['loading'] = 'eager';
     } else {
       $attribs['loading'] = 'lazy';
